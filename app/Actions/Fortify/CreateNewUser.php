@@ -25,6 +25,7 @@ class CreateNewUser implements CreatesNewUsers
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => $this->passwordRules(),
+
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
 
@@ -34,7 +35,10 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
             ]), function (User $user) {
-                $this->createTeam($user);
+                // Crear l'equip i assignar-lo al `current_team_id` de l'usuari
+                $team = $this->createTeam($user);
+                $user->current_team_id = $team->id;
+                $user->save(); // Guardar l'usuari amb el nou `current_team_id`
             });
         });
     }
@@ -42,12 +46,18 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Create a personal team for the user.
      */
-    protected function createTeam(User $user): void
+    protected function createTeam(User $user): Team
     {
-        $user->ownedTeams()->save(Team::forceCreate([
+        // Crear l'equip personal
+        $team = Team::forceCreate([
             'user_id' => $user->id,
             'name' => explode(' ', $user->name, 2)[0]."'s Team",
             'personal_team' => true,
-        ]));
+        ]);
+
+        // Assignar l'equip a l'usuari
+        $user->ownedTeams()->save($team);
+
+        return $team;
     }
 }

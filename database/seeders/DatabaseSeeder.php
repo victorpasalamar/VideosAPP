@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Video;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,13 +11,23 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
+    public function run()
     {
-        // User::factory(10)->withPersonalTeam()->create();
-
-        User::factory()->withPersonalTeam()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Crear un usuari per defecte
+        User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'), // Mai posis contrasenyes en text pla en producció
         ]);
+
+        // Crear diversos vídeos per defecte
+        Video::factory()->create([
+            'title' => 'Vídeo per defecte',
+            'description' => 'Descripció per defecte del vídeo.',
+            'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'published_at' => now(),
+        ]);
+
+        $this->command->info('Usuaris i vídeos per defecte creats.');
     }
 }

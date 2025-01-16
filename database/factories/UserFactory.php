@@ -11,6 +11,8 @@ use Laravel\Jetstream\Features;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @property string|null $profile_photo_path
+ * @property int|null $current_team_id
  */
 class UserFactory extends Factory
 {
@@ -60,11 +62,13 @@ class UserFactory extends Factory
 
         return $this->has(
             Team::factory()
-                ->state(fn (array $attributes, User $user) => [
-                    'name' => $user->name.'\'s Team',
-                    'user_id' => $user->id,
-                    'personal_team' => true,
-                ])
+                ->state(function (array $attributes, $user) {
+                    return [
+                        'name' => $user->name . '\'s Team',
+                        'user_id' => $user->id,
+                        'personal_team' => true,
+                    ];
+                })
                 ->when(is_callable($callback), $callback),
             'ownedTeams'
         );

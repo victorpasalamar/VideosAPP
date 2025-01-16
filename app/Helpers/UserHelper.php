@@ -15,4 +15,15 @@ class UserHelper
             'password' => bcrypt($credentials['password']),
         ]);
     }
+    public static function createProfessorUser()
+    {
+        return User::firstOrCreate(
+            ['email' => 'professor@user.com'],
+            [
+                'name' => 'Professor User',
+                'password' => bcrypt('password'),
+            ]
+        );
+    }
+
 }

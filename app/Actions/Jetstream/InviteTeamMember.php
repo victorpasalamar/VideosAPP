@@ -13,8 +13,9 @@ use Illuminate\Validation\Rule;
 use Laravel\Jetstream\Contracts\InvitesTeamMembers;
 use Laravel\Jetstream\Events\InvitingTeamMember;
 use Laravel\Jetstream\Jetstream;
-use Laravel\Jetstream\Mail\TeamInvitation;
+use Laravel\Jetstream\Mail\TeamInvitation as TeamInvitationMail;
 use Laravel\Jetstream\Rules\Role;
+use Laravel\Jetstream\TeamInvitation;
 
 class InviteTeamMember implements InvitesTeamMembers
 {
@@ -24,19 +25,17 @@ class InviteTeamMember implements InvitesTeamMembers
     public function invite(User $user, Team $team, string $email, ?string $role = null): void
     {
         Gate::forUser($user)->authorize('addTeamMember', $team);
-
         $this->validate($team, $email, $role);
-
         InvitingTeamMember::dispatch($team, $email, $role);
-
-        $invitation = $team->teamInvitations()->create([
+        // Crear la instància correcta de TeamInvitation (no utilitzar el model Eloquent directe)
+        $invitation = new TeamInvitation([
             'email' => $email,
             'role' => $role,
+            'team_id' => $team->id, // Asegura't d'afegir l'id de l'equip
         ]);
-
-        Mail::to($email)->send(new TeamInvitation($invitation));
+        // Ara podem enviar la invitació per correu
+        Mail::to($email)->send(new TeamInvitationMail($invitation));
     }
-
     /**
      * Validate the invite member operation.
      */
@@ -51,7 +50,6 @@ class InviteTeamMember implements InvitesTeamMembers
             $this->ensureUserIsNotAlreadyOnTeam($team, $email)
         )->validateWithBag('addTeamMember');
     }
-
     /**
      * Get the validation rules for inviting a team member.
      *
@@ -67,8 +65,8 @@ class InviteTeamMember implements InvitesTeamMembers
                 }),
             ],
             'role' => Jetstream::hasRoles()
-                            ? ['required', 'string', new Role]
-                            : null,
+                ? ['required', 'string', new Role]
+                : null,
         ]);
     }
 

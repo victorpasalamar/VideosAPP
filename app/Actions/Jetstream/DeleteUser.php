@@ -11,14 +11,14 @@ use Laravel\Jetstream\Contracts\DeletesUsers;
 class DeleteUser implements DeletesUsers
 {
     /**
-     * Create a new action instance.
+     * Crear una nova instància de l'acció.
      */
     public function __construct(protected DeletesTeams $deletesTeams)
     {
     }
 
     /**
-     * Delete the given user.
+     * Eliminar l'usuari donat.
      */
     public function delete(User $user): void
     {
@@ -31,14 +31,18 @@ class DeleteUser implements DeletesUsers
     }
 
     /**
-     * Delete the teams and team associations attached to the user.
+     * Eliminar els equips i les associacions d'equips adjuntades a l'usuari.
      */
     protected function deleteTeams(User $user): void
     {
+        // Desacoblem els equips associats
         $user->teams()->detach();
 
-        $user->ownedTeams->each(function (Team $team) {
-            $this->deletesTeams->delete($team);
+        // Iterem sobre els equips que l'usuari posseïx i els eliminem
+        $user->ownedTeams->each(function ($team) {
+            if ($team instanceof Team) {
+                $this->deletesTeams->delete($team);
+            }
         });
     }
 }
