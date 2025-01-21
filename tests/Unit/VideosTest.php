@@ -44,6 +44,6 @@ use RefreshDatabase;
         ]);
 
         $this->assertEquals($publishedAt->timestamp, $video->published_at_timestamp);
-        
+
     }
 }
