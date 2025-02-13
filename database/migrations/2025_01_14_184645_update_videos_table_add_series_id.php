@@ -7,6 +7,7 @@ class UpdateVideosTableAddSeriesId extends Migration
 {
     public function up()
     {
+
         Schema::table('videos', function (Blueprint $table) {
             // Elimina la relació forana (si existeix)
             $table->dropForeign(['series_id']);
@@ -14,10 +15,12 @@ class UpdateVideosTableAddSeriesId extends Migration
             // Modifica el camp 'series_id'
             $table->integer('series_id')->nullable()->change(); // Permet valors null i elimina la clau forana
         });
+
     }
 
     public function down()
     {
+
         Schema::table('videos', function (Blueprint $table) {
             // Torna a posar el camp com estava abans (ajusta segons sigui necessari)
             $table->unsignedBigInteger('series_id')->change();
@@ -25,5 +28,6 @@ class UpdateVideosTableAddSeriesId extends Migration
             // Opcional: Afegir de nou la clau forana
             $table->foreign('series_id')->references('id')->on('series')->onDelete('cascade');
         });
+
     }
 };

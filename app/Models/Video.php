@@ -6,6 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property mixed $user_id
+ */
 class Video extends Model
 {
     use HasFactory;
@@ -27,23 +30,14 @@ class Video extends Model
     /**
      * Retorna la data publicada en format "13 de gener de 2025".
      */
-    public function getFormattedPublishedAtAttribute(): ?string
+    public function getFormattedPublishedAtAttribute()
     {
-        return $this->published_at
-            ? Carbon::parse($this->published_at)->translatedFormat('d \d\e F \d\e Y')
-            : null;
+        return $this->published_at->locale('ca')->isoFormat('D [de] MMMM [de] YYYY');
     }
 
-    /**
-     * Get the published_at date in a human-readable format like "fa 2 hores".
-     *
-     * @return string|null
-     */
-    public function getFormattedForHumansPublishedAtAttribute(): ?string
+    public function getFormattedForHumansPublishedAtAttribute()
     {
-        return $this->published_at
-            ? Carbon::parse($this->published_at)->diffForHumans()
-            : null;
+        return $this->published_at->locale('ca')->diffForHumans();
     }
 
     /**

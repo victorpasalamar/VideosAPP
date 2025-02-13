@@ -51,15 +51,42 @@
 
 ---
 
+## Sprint 3: Implementació de permisos, rols i millores en l'autenticació
+
+**Durada**: 2 setmanes
+
+### Objectius
+
+1. Instal·lar el paquet **spatie/laravel-permission** per gestionar permisos i rols.
+2. Afegir un camp **super_admin** a la taula dels usuaris per gestionar l'accés d'usuaris superadministradors.
+3. Crear les funcions al model d'usuaris `testedBy()` i `isSuperAdmin()`.
+4. Configurar la creació de rols i permisos, afegir usuaris per defecte amb diferents rols (superadmin, regular, video manager).
+5. Crear proves per a validar la gestió de vídeos segons els permisos dels usuaris.
+
+### Tasques Realitzades
+
+- Instal·lació i configuració del paquet **spatie/laravel-permission** per gestionar rols i permisos.
+- Creació d'una migració per afegir el camp **super_admin** a la taula `users` i actualització del model **User**.
+- Afegit la funció `isSuperAdmin()` al model `User` per verificar si un usuari és un superadministrador.
+- Creació de funcions addicionals per generar usuaris amb permisos específics: `create_regular_user()`, `create_video_manager_user()`, `create_superadmin_user()`.
+- Actualització del **DatabaseSeeder** per incloure usuaris per defecte amb rols de **regular**, **video manager** i **superadmin**.
+- Creació de les funcions `define_gates()` i `create_permissions()` per definir les portes d'accés i permisos dels usuaris.
+- Implementació de la funció `add_personal_team()` per separar la creació d'equips i usuaris.
+- Creació de proves a **VideosManageControllerTest** per comprovar que els usuaris amb permisos poden gestionar vídeos i que els usuaris sense permisos no poden.
+- Implementació de les funcions de prova a **UserTest** per validar la lògica de l'usuari superadmin.
+
+---
+
 ## Tecnologies Utilitzades
 
 - **Laravel 11.x**: Framework per a construir l'aplicació web.
 - **PHP 8.x**: Llenguatge de programació utilitzat per al backend.
 - **SQLite**: Base de dades utilitzada durant el desenvolupament.
 - **PHPUnit**: Eina per a les proves automatitzades.
+- **spatie/laravel-permission**: Paquet per gestionar rols i permisos a Laravel.
 
 ---
 
 ## Conclusió
 
-Aquesta aplicació proporciona una estructura bàsica per gestionar vídeos amb Laravel. Els dos sprints han permès desenvolupar la funcionalitat principal de l'aplicació, així com establir una base de proves automatitzades per garantir la qualitat del codi. L'objectiu del projecte és establir una base sòlida sobre la qual es poden afegir més funcionalitats i millores en el futur.
+Aquesta aplicació proporciona una estructura bàsica per gestionar vídeos amb Laravel. Els tres sprints han permès desenvolupar la funcionalitat principal de l'aplicació, incloent la gestió de rols i permisos per assegurar l'accés controlat a diferents seccions de l'aplicació. També s'ha establert una base sòlida de proves automatitzades per garantir la qualitat del codi. L'objectiu del projecte és establir una infraestructura robusta sobre la qual es poden afegir més funcionalitats i millores en el futur.

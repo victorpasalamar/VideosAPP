@@ -10,9 +10,13 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
+
 
 /**
  * @property string|null $profile_photo_url
+ * @property mixed $role
  */
 class User extends Authenticatable
 {
@@ -23,6 +27,7 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +38,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'super_admin',
     ];
 
     /**
@@ -78,4 +84,29 @@ class User extends Authenticatable
             ? Storage::url($this->profile_photo_path)
             : null;
     }
+
+    public static function testedBy(): string
+    {
+        return \Tests\Unit\HelpersTest::class; // Ruta del test unitari de User
+    }
+    public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin'; // Verifica que la propietat 'role' és exactament 'superadmin'
+    }
+    public function addPersonalTeam()
+    {
+        // Creem l'equip personal de l'usuari
+        $team = \App\Models\Team::forceCreate([
+            'user_id' => $this->id,
+            'name' => $this->name . "'s Team",
+            'personal_team' => true,
+        ]);
+
+        // Assignem l'equip a l'usuari
+        $this->current_team_id = $team->id;
+        $this->save();
+    }
+
+
+
 }

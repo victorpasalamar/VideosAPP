@@ -45,7 +45,7 @@ class HelpersTest extends TestCase
             'name' => "Víctor User's Team",  // Canviat aquí
         ]);
 
-        dd($user->toArray());
+        //dd($user->toArray());
     }
     public function test_default_profe_creation()
     {
@@ -53,37 +53,29 @@ class HelpersTest extends TestCase
             'name' => 'Professor User',
             'email' => 'professor@professor.com',
             'password' => bcrypt('password'),
+            'super_admin' => true,
         ]);
 
+        // Fem servir la nova funció per afegir el personal team
+        $professor->addPersonalTeam();
+
+        // Verifiquem que l'usuari és a la base de dades
         $this->assertDatabaseHas('users', [
             'email' => 'professor@professor.com',
-        ]);
-        // Crear l'equip personal per a l'usuari (lògica de createTeam() aquí)
-        $team = \App\Models\Team::forceCreate([
-            'user_id' => $professor->id,
-            'name' => $professor->name."'s Team",  // Canviat aquí
-            'personal_team' => true,
+            'super_admin' => true,
         ]);
 
-        // Assignar l'equip a l'usuari
-        $professor->current_team_id = $team->id;
-        $professor->save();
-
-        // Comprovar que l'usuari existeix a la base de dades
-        $this->assertDatabaseHas('users', [
-            'email' => 'professor@professor.com',
-        ]);
-
-        // Comprovar que la contrasenya és correcta
+        // Comprovem que la contrasenya és correcta
         $this->assertTrue(password_verify('password', $professor->password));
 
-        // Comprovar que l'equip personal s'ha creat
+        // Comprovem que l'equip personal s'ha creat correctament
         $this->assertDatabaseHas('teams', [
             'user_id' => $professor->id,
-            'name' => "Professor User's Team",  // Canviat aquí
+            'name' => "Professor User's Team",
         ]);
-        $this->assertTrue(password_verify('password', $professor->password));
-        dd($professor->toArray());
+
+        // Verifiquem que la funció isSuperAdmin() funciona
+        $this->assertTrue($professor->isSuperAdmin());
     }
     public function test_create_default_video()
     {
@@ -93,6 +85,70 @@ class HelpersTest extends TestCase
             'title' => 'Vídeo per defecte',
         ]);
         $this->assertNotNull($video->published_at);
-        dd($video->toArray());
+        //dd($video->toArray());
+    }
+    public function test_regular_user_creation()
+    {
+        {
+            $user = User::createRegularUser();
+
+            // Comprovem que l'usuari s'ha creat correctament
+            $this->assertDatabaseHas('users', [
+                'email' => 'regular@videosapp.com',
+            ]);
+
+            // Comprovem que la contrasenya és correcta
+            $this->assertTrue(password_verify('123456789', $user->password));
+
+            // Comprovem que té un equip assignat
+            $this->assertDatabaseHas('teams', [
+                'user_id' => $user->id,
+                'name' => "Regular User's Team",
+            ]);
+        }
+    }
+
+    public function test_video_manager_user_creation()
+    {
+        $user = User::createVideoManagerUser();
+
+        // Comprovem que l'usuari s'ha creat correctament
+        $this->assertDatabaseHas('users', [
+            'email' => 'videosmanager@videosapp.com',
+        ]);
+
+        // Comprovem que la contrasenya és correcta
+        $this->assertTrue(password_verify('123456789', $user->password));
+
+        // Comprovem que té un equip assignat
+        $this->assertDatabaseHas('teams', [
+            'user_id' => $user->id,
+            'name' => "Video Manager's Team",
+        ]);
+
+        // Comprovem que té assignat el rol de "video_manager"
+        $this->assertTrue($user->hasRole('video_manager'));
+    }
+
+    public function test_super_admin_creation()
+    {
+        $user = User::createSuperAdminUser();
+
+        // Comprovem que l'usuari s'ha creat correctament
+        $this->assertDatabaseHas('users', [
+            'email' => 'superadmin@videosapp.com',
+        ]);
+
+        // Comprovem que la contrasenya és correcta
+        $this->assertTrue(password_verify('123456789', $user->password));
+
+        // Comprovem que té un equip assignat
+        $this->assertDatabaseHas('teams', [
+            'user_id' => $user->id,
+            'name' => "Super Admin's Team",
+        ]);
+
+        // Comprovem que té assignat el rol de "super_admin"
+        $this->assertTrue($user->hasRole('super_admin'));
     }
 }
