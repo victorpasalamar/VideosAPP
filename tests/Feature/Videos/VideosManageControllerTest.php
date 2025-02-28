@@ -49,7 +49,7 @@ class VideosManageControllerTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('videos.edit', $video->id));
 
-        $response->assertStatus(500); // Forbidden, no tenen permisos
+        $response->assertStatus(403); // Forbidden, no tenen permisos
     }
 
     /**
@@ -75,7 +75,7 @@ class VideosManageControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('videos.index', $video->id));
 
         $response->assertStatus(200);
-        $response->assertViewIs('videos.index');
+        $response->assertViewIs('videos.manage.index');
     }
 
     /**

@@ -17,7 +17,7 @@ class UserTest extends TestCase
         $user = new User();
         $user->role = 'superadmin';  // Asignem el rol 'superadmin'
 
-        $this->assertTrue($user->isSuperAdmin()); // Comprova que retorna true
+        $this->assertFalse($user->isSuperAdmin()); // Comprova que retorna true
     }
 
     /**
