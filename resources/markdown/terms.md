@@ -14,7 +14,7 @@
 
 ## Sprint 1: Planificació i Funcionalitats Bàsiques
 
-**Durada**: 2 setmanes
+### Durada: 2 setmanes
 
 ### Objectius
 
@@ -33,7 +33,7 @@
 
 ## Sprint 2: Millores i Proves Addicionals
 
-**Durada**: 2 setmanes
+### Durada: 2 setmanes
 
 ### Objectius
 
@@ -53,7 +53,7 @@
 
 ## Sprint 3: Implementació de permisos, rols i millores en l'autenticació
 
-**Durada**: 2 setmanes
+### Durada: 2 setmanes
 
 ### Objectius
 
@@ -77,6 +77,75 @@
 
 ---
 
+## Sprint 4: Correccions i Millores en el CRUD de Vídeos
+
+### Durada: 2 setmanes
+
+### Objectius
+
+1. Corregir els errors del 3r sprint, especialment en els tests relacionats amb els permisos d'accés a la ruta `/videosmanage`.
+2. Implementar el controlador `VideosManageController` amb les funcions necessàries per al CRUD de vídeos.
+3. Crear les vistes necessàries per al CRUD de vídeos, assegurant que només els usuaris amb permisos adequats puguin accedir-hi.
+4. Millorar les proves existents i afegir noves proves per garantir el correcte funcionament de les funcionalitats.
+
+### Tasques Realitzades
+
+- **Correccions dels errors del 3r sprint**:
+    - Modificació dels tests per assegurar que els usuaris amb permisos puguin accedir a la ruta `/videosmanage`.
+    - Revisió i correcció dels tests existents per garantir que es comprova correctament l'accés als vídeos segons els permisos dels usuaris.
+
+- **Creació del `VideosManageController`**:
+    - Implementació de les funcions `testedBy`, `index`, `store`, `show`, `edit`, `update`, `delete` i `destroy` al controlador `VideosManageController`.
+    - Creació de la funció `index` al `VideosController` per mostrar tots els vídeos disponibles.
+
+- **Creació de les vistes per al CRUD de vídeos**:
+    - Creació de les vistes `index.blade.php`, `create.blade.php`, `edit.blade.php` i `delete.blade.php` dins de la carpeta `resources/views/videos/manage/`.
+    - A la vista `index.blade.php`, s'ha afegit una taula per mostrar el llistat de vídeos amb opcions per editar i eliminar.
+    - A la vista `create.blade.php`, s'ha afegit un formulari per afegir nous vídeos, utilitzant l'atribut `data-qa` per facilitar les proves.
+    - A la vista `edit.blade.php`, s'ha afegit un formulari per editar els vídeos existents.
+    - A la vista `delete.blade.php`, s'ha afegit una confirmació per a l'eliminació de vídeos.
+
+- **Creació de la vista principal de vídeos**:
+    - Creació de la vista `index.blade.php` dins de `resources/views/videos/` per mostrar tots els vídeos disponibles, similar a la pàgina principal de YouTube.
+    - En clicar a un vídeo, es redirigeix a la vista de detall del vídeo (funció `show` implementada en sprints anteriors).
+
+- **Modificació dels tests**:
+    - Modificació del test `user_with_permissions_can_manage_videos()` per assegurar que hi hagi 3 vídeos creats.
+    - Creació de les funcions de prova a `VideoTest`:
+        - `user_without_permissions_can_see_default_videos_page`
+        - `user_with_permissions_can_see_default_videos_page`
+        - `not_logged_users_can_see_default_videos_page`
+    - Creació de les funcions de prova a `VideosManageControllerTest`:
+        - `loginAsVideoManager`
+        - `loginAsSuperAdmin`
+        - `loginAsRegularUser`
+        - `user_with_permissions_can_see_add_videos`
+        - `user_without_videos_manage_create_cannot_see_add_videos`
+        - `user_with_permissions_can_store_videos`
+        - `user_without_permissions_cannot_store_videos`
+        - `user_with_permissions_can_destroy_videos`
+        - `user_without_permissions_cannot_destroy_videos`
+        - `user_with_permissions_can_see_edit_videos`
+        - `user_without_permissions_cannot_see_edit_videos`
+        - `user_with_permissions_can_update_videos`
+        - `user_without_permissions_cannot_update_videos`
+        - `user_with_permissions_can_manage_videos`
+        - `regular_users_cannot_manage_videos`
+        - `guest_users_cannot_manage_videos`
+        - `superadmins_can_manage_videos`
+
+- **Creació de permisos i assignació a usuaris**:
+    - A `helpers`, s'han creat els permisos necessaris per al CRUD de vídeos i s'han assignat als usuaris corresponents.
+
+- **Configuració de les rutes**:
+    - Creació de les rutes per al CRUD de vídeos dins de `videos/manage`, amb el middleware corresponent per assegurar que només els usuaris loguejats puguin accedir-hi.
+    - Creació de la ruta per a la pàgina principal de vídeos (`/videos`), accessible tant per usuaris loguejats com no loguejats.
+
+- **Millores en la interfície d'usuari**:
+    - Afegit un navbar i un footer a la plantilla `resources/layouts/videosapp` per facilitar la navegació entre pàgines.
+
+---
+
 ## Tecnologies Utilitzades
 
 - **Laravel 11.x**: Framework per a construir l'aplicació web.
@@ -89,4 +158,4 @@
 
 ## Conclusió
 
-Aquesta aplicació proporciona una estructura bàsica per gestionar vídeos amb Laravel. Els tres sprints han permès desenvolupar la funcionalitat principal de l'aplicació, incloent la gestió de rols i permisos per assegurar l'accés controlat a diferents seccions de l'aplicació. També s'ha establert una base sòlida de proves automatitzades per garantir la qualitat del codi. L'objectiu del projecte és establir una infraestructura robusta sobre la qual es poden afegir més funcionalitats i millores en el futur.
+Aquesta aplicació proporciona una estructura bàsica per gestionar vídeos amb Laravel. Els quatre sprints han permès desenvolupar la funcionalitat principal de l'aplicació, incloent la gestió de rols i permisos per assegurar l'accés controlat a diferents seccions de l'aplicació. També s'ha establert una base sòlida de proves automatitzades per garantir la qualitat del codi. L'objectiu del projecte és establir una infraestructura robusta sobre la qual es poden afegir més funcionalitats i millores en el futur.

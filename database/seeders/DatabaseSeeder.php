@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Helpers\UserHelper;
+use App\Helpers\VideoHelper;
 use App\Models\User;
 use App\Models\Video;
 use Illuminate\Database\Seeder;
@@ -16,82 +17,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        UserHelper::createDefaultUser();
-        // Crear un usuari per defecte
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'), // Mai posis contrasenyes en text pla en producció
-        ]);
-
         // Crear diversos vídeos per defecte
-        Video::factory()->create([
-            'title' => 'Vídeo per defecte',
-            'description' => 'Descripció per defecte del vídeo.',
-            'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            'published_at' => now(),
-        ]);
-
-        $this->command->info('Usuaris i vídeos per defecte creats.');
+        VideoHelper::createDefaultVideo1('Video 1');
+        VideoHelper::createDefaultVideo2('Vídeo 2');
+        VideoHelper::createDefaultVideo3('Vídeo 3');
+        VideoHelper::createDefaultVideo4('Vídeo 4');
+        VideoHelper::createDefaultVideo5('Vídeo 5');
 
         // Assegurar que els permisos existeixen
-        $permissions = ['edit videos', 'delete videos', 'view analytics'];
-
-        foreach ($permissions as $permission) {
-            if (!Permission::where('name', $permission)->exists()) {
-                Permission::create(['name' => $permission]);
-            }
-        }
+        UserHelper::createPermissions();
 
         // Assegurar que el rol "super_admin" tingui tots els permisos
-        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
-        $superAdminRole->givePermissionTo(Permission::all());
-
-
-        // Assegurar que els permisos existeixen
-        $permissions = ['edit videos', 'delete videos', 'view analytics'];
-
-        foreach ($permissions as $permission) {
-            if (!Permission::where('name', $permission)->exists()) {
-                Permission::create(['name' => $permission]);
-            }
-        }
+       UserHelper::createSuperAdminRole();
 
         // Rol Video Manager
-        $videoManagerRole = Role::firstOrCreate(['name' => 'video_manager']);
-        $videoManagerRole->givePermissionTo(['edit videos', 'delete videos']);
+        UserHelper::createVideoManagerRole();
 
         // Rol Regular User
-        $regularUserRole = Role::firstOrCreate(['name' => 'regular_user']);
-        $regularUserRole->givePermissionTo(['view analytics']); // O assignar permisos específics que vulguis per al regular user
+        UserHelper::createRegularUserRole();
 
-        // Crear els usuaris per defecte
-        // Usuari Regular
-        $regularUser = User::create([
-            'name' => 'Regular User',
-            'email' => 'regular@videosapp.com',
-            'password' => bcrypt('123456789'),
-        ]);
-        $regularUser->assignRole('regular_user'); // Assignar rol regular_user
-        $regularUser->addPersonalTeam(); // Afegir l'equip personal
+        // Usuari Regular (sense permisos especials)
+        UserHelper::createRegularUser();
 
         // Usuari Video Manager
-        $videoManagerUser = User::create([
-            'name' => 'Video Manager',
-            'email' => 'videosmanager@videosapp.com',
-            'password' => bcrypt('123456789'),
-        ]);
-        $videoManagerUser->assignRole('video_manager'); // Assignar rol video_manager
-        $videoManagerUser->addPersonalTeam(); // Afegir l'equip personal
+        UserHelper::createVideoManagerUser();
 
         // Usuari Super Admin
-        $superAdminUser = User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@videosapp.com',
-            'password' => bcrypt('123456789'),
-        ]);
-        $superAdminUser->assignRole('super_admin'); // Assignar rol super_admin
-        $superAdminUser->addPersonalTeam(); // Afegir l'equip personal
+        UserHelper::createSuperAdminUser();
 
     }
 }

@@ -19,20 +19,29 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot()
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    protected array $policies = [
+        Video::class => VideoPolicy::class, // Registrem la política del model Video
+    ];
+
+    /**
+     * Register any authentication / authorization services.
+     */
+    public function boot(): void
     {
-        $this->register();
+        $this->register(); // Registrem les polítiques correctament
 
         // Definir un Gate per a Super Admin
         Gate::define('manage-everything', function ($user) {
             return $user->hasRole('super_admin');
         });
 
-        // Registrar polítiques
-        Gate::policy(Video::class, VideoPolicy::class);
-
         Gate::define('manage-videos', function ($user) {
-            return $user->hasRole('video_manager');
+            return $user->hasRole('video_manager') || $user->hasRole('super_admin');
         });
 
         Gate::define('view-dashboard', function ($user) {

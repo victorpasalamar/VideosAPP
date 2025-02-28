@@ -3,37 +3,33 @@
 namespace App\Helpers;
 
 use App\Models\User;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-/**
- * @method static factory()
- */
+
 class UserHelper
 {
-    public static function createDefaultUser()
-    {
-        $credentials = config('users.default_user');
-        return User::create([
-            'name' => $credentials['name'],
-            'email' => $credentials['email'],
-            'password' => bcrypt($credentials['password']),
-        ]);
-    }
     public static function createProfessorUser()
     {
-        return User::firstOrCreate(
-            ['email' => 'professor@user.com'],
+        if (!Role::where('name', 'super_admin')->exists()) {
+            Role::create(['name' => 'super_admin']);
+        }
+        $professor = User::firstOrCreate(
             [
                 'name' => 'Professor User',
                 'password' => bcrypt('password'),
+                'email' => 'professor@user.com',
+                'super_admin' => true,
             ]
         );
+        $professor->assignRole('super_admin');
+        return $professor;
     }
 
     public static function createRegularUser()
     {
         // Creem un usuari regular amb les dades especificades
-        $user = self::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Regular User',
             'email' => 'regular@videosapp.com',
             'password' => bcrypt('123456789'),
@@ -51,44 +47,67 @@ class UserHelper
         if (!Role::where('name', 'video_manager')->exists()) {
             Role::create(['name' => 'video_manager']);
         }
-
         // Crear l'usuari
-        $user = self::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Video Manager',
             'email' => 'videosmanager@videosapp.com',
             'password' => bcrypt('123456789'),
         ]);
-
         // Assignar equip personal
         $user->addPersonalTeam();
-
         // Assignar rol
         $user->assignRole('video_manager');
-
         return $user;
     }
-
     public static function createSuperAdminUser()
     {
         // Comprovar si el rol "super_admin" existeix, si no, el creem
         if (!Role::where('name', 'super_admin')->exists()) {
             Role::create(['name' => 'super_admin']);
         }
-
         // Crear l'usuari Super Admin
-        $user = self::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'superadmin@videosapp.com',
             'password' => bcrypt('123456789'),
+            'super_admin' => true,
         ]);
-
         // Assignar l'equip personal
         $user->addPersonalTeam();
-
         // Assignar el rol de super_admin
         $user->assignRole('super_admin');
-
         return $user;
     }
+
+    public static function createRegularUserRole(){
+        $regularUserRole = Role::firstOrCreate(['name' => 'regular_user']);
+        $regularUserRole->givePermissionTo(['view analytics']);
+        return $regularUserRole;
+    }
+
+    public static function createVideoManagerRole(){
+        $videoManagerRole = Role::firstOrCreate(['name' => 'video_manager']);
+        $videoManagerRole->givePermissionTo(['edit videos', 'delete videos']);
+        return $videoManagerRole;
+    }
+
+    public static function createSuperAdminRole(){
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
+        $superAdminRole->givePermissionTo(['edit videos', 'delete videos', 'view analytics', 'manage videos']);
+        return $superAdminRole;
+    }
+
+    public static function createPermissions(): array
+    {
+        $permissions = ['edit videos', 'delete videos', 'view analytics', 'manage videos'];
+
+        foreach ($permissions as $permission) {
+            if (!Permission::where('name', $permission)->exists()) {
+                Permission::create(['name' => $permission]);
+            }
+        }
+        return $permissions;
+    }
+
 
 }

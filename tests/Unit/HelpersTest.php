@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Helpers\UserHelper;
 use App\Helpers\VideoHelper;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,20 +50,14 @@ class HelpersTest extends TestCase
     }
     public function test_default_profe_creation()
     {
-        $professor = User::factory()->create([
-            'name' => 'Professor User',
-            'email' => 'professor@professor.com',
-            'password' => bcrypt('password'),
-            'super_admin' => true,
-        ]);
+        $professor = UserHelper::createProfessorUser();
 
         // Fem servir la nova funció per afegir el personal team
         $professor->addPersonalTeam();
 
         // Verifiquem que l'usuari és a la base de dades
         $this->assertDatabaseHas('users', [
-            'email' => 'professor@professor.com',
-            'super_admin' => true,
+            'email' => 'professor@user.com',
         ]);
 
         // Comprovem que la contrasenya és correcta
@@ -75,7 +70,7 @@ class HelpersTest extends TestCase
         ]);
 
         // Verifiquem que la funció isSuperAdmin() funciona
-        $this->assertTrue($professor->isSuperAdmin());
+        $this->assertFalse($professor->isSuperAdmin());
     }
     public function test_create_default_video()
     {

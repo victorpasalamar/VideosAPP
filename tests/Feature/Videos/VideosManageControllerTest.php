@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Videos;
 
+use App\Helpers\VideoHelper;
 use App\Models\User;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
@@ -20,12 +22,21 @@ class VideosManageControllerTest extends TestCase
     public function test_user_with_permissions_can_manage_videos()
     {
         $user = $this->loginAsVideoManager(); // Usuari amb permís de video_manager
-        $video = Video::factory()->create(); // Crear un vídeo de prova
 
-        $response = $this->actingAs($user)->get(route('videos.index', $video->id));
+        // Crear 3 vídeos de prova mitjançant VideoHelper
+        VideoHelper::createDefaultVideo1('Video 1');
+        VideoHelper::createDefaultVideo2('Vídeo 2');
+        VideoHelper::createDefaultVideo3('Vídeo 3');
+
+        $response = $this->actingAs($user)->get(route('videos.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('videos.index'); // Assegura't que es carrega la vista esperada
+        $response->assertViewIs('videos.manage.index'); // Assegura't que es carrega la vista esperada
+
+        // Comprova que els 3 vídeos es mostren a la vista
+        $response->assertSee('Video 1');
+        $response->assertSee('Vídeo 2');
+        $response->assertSee('Vídeo 3');
     }
 
     /**
@@ -87,15 +98,21 @@ class VideosManageControllerTest extends TestCase
      */
     private function loginAsSuperAdmin()
     {
-        $user = User::create([
+        // Comprovar si el rol "super_admin" existeix, si no, el creem
+        if (!Role::where('name', 'super_admin')->exists()) {
+            Role::create(['name' => 'super_admin']);
+        }
+        // Crear l'usuari Super Admin
+        $user = User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'superadmin@videosapp.com',
             'password' => bcrypt('123456789'),
+            'super_admin' => true,
         ]);
-
-        $role = Role::firstOrCreate(['name' => 'super_admin']);
-        $user->assignRole($role);
-
+        // Assignar l'equip personal
+        $user->addPersonalTeam();
+        // Assignar el rol de super_admin
+        $user->assignRole('super_admin');
         return $user;
     }
 
@@ -131,4 +148,192 @@ class VideosManageControllerTest extends TestCase
         $formattedForHumans = $video->formattedForHumansPublishedAt; // Format "fa 2 hores"
         $this->assertStringContainsString('fa', $formattedForHumans); // Per exemple, "fa 2 hores"
     }
+    public function test_user_with_permissions_can_see_default_videos_page()
+    {
+        $user = $this->loginAsVideoManager(); // Usuari amb permís de video_manager
+
+        // Creem alguns vídeos per verificar que es mostren
+        VideoHelper::createDefaultVideo1('Video 1');
+        VideoHelper::createDefaultVideo2('Vídeo 2');
+        VideoHelper::createDefaultVideo3('Vídeo 3');
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Comprovem que l'usuari amb permís pot veure la pàgina de vídeos
+        $response = $this->get(route('videos.index'));
+
+        // Comprovem que la vista es carrega correctament (status 200)
+        $response->assertStatus(200);
+
+        // Comprovem que els títols dels vídeos es mostren a la vista
+        $response->assertSee('Video 1');
+        $response->assertSee('Vídeo 2');
+        $response->assertSee('Vídeo 3');
+    }
+    public function test_user_without_permissions_can_see_default_videos_page()
+    {
+        // Creem un usuari sense permisos específics
+        $user = User::factory()->create();
+
+        // Creem vídeos de prova
+        VideoHelper::createDefaultVideo1('Video 1');
+        VideoHelper::createDefaultVideo2('Vídeo 2');
+        VideoHelper::createDefaultVideo3('Vídeo 3');
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Comprovem que l'usuari pot veure la pàgina de vídeos
+        $response = $this->get(route('videos.index'));
+
+        // Comprovem que la vista es carrega correctament
+        $response->assertStatus(200);
+
+        // Comprovem que els vídeos es mostren a la vista
+        $response->assertSee('Video 1');
+        $response->assertSee('Vídeo 2');
+        $response->assertSee('Vídeo 3');
+    }
+    public static function createSuperAdminRole(){
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
+        $superAdminRole->givePermissionTo(['edit videos', 'delete videos', 'view analytics', 'manage videos']);
+        return $superAdminRole;
+    }
+    public static function createPermissions(): array
+    {
+        $permissions = ['edit videos', 'delete videos', 'view analytics', 'manage videos'];
+
+        foreach ($permissions as $permission) {
+            if (!Permission::where('name', $permission)->exists()) {
+                Permission::create(['name' => $permission]);
+            }
+        }
+        return $permissions;
+    }
+    public function test_user_with_permissions_can_see_add_videos()
+    {
+        self::createPermissions();
+        self::createSuperAdminRole();
+        $user = $this->loginAsSuperAdmin(); // Usuari amb permís de video_manager
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Comprovem que l'usuari amb permís pot veure la pàgina per afegir vídeos
+        $response = $this->get(route('videos.create'));
+
+        // Comprovem que es carrega la vista correctament
+        $response->assertStatus(200);
+    }
+    public function test_user_without_permissions_cannot_see_add_videos()
+    {
+        // Creem un usuari sense permisos específics
+        $user = User::factory()->create();
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem accedir a la pàgina per afegir vídeos
+        $response = $this->get(route('videos.create'));
+
+        // Comprovem que l'usuari no pot veure la pàgina per afegir vídeos
+        $response->assertStatus(403); // Accés denegat (Forbidden)
+    }
+
+    public function test_user_with_permissions_can_store_videos()
+    {
+        self::createPermissions();
+        self::createSuperAdminRole();
+        $user = $this->loginAsSuperAdmin(); // Usuari amb permís de video_manager
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+
+        // Comprovem que el vídeo es guarda correctament
+        $response = $this->get(route('videos.create')); // O el codi d'estat que sigui pertinent
+        $response->assertStatus(200);
+    }
+
+    public function test_user_without_permissions_cannot_store_videos()
+    {
+        // Creem un usuari sense permisos específics
+        $user = User::factory()->create();
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem emmagatzemar un vídeo
+
+        $response = $this->get(route('videos.create'));
+        // Comprovem que l'usuari no pot emmagatzemar vídeos (Forbidden)
+        $response->assertStatus(403);
+    }
+
+    public function test_user_with_permissions_can_destroy_videos()
+    {
+        self::createPermissions();
+        self::createSuperAdminRole();
+        $user = $this->loginAsSuperAdmin(); // Usuari amb permís de video_manager
+        $video = Video::factory()->create(); // Creem un vídeo
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem destruir el vídeo
+        $response = $this->get(route('videos.destroy', $video->id));
+
+        // Comprovem que el vídeo es destruit correctament
+        $response->assertStatus(200);
+    }
+
+    public function test_user_without_permissions_cannot_destroy_videos()
+    {
+        $user = User::factory()->create(); // Usuari sense permisos específics
+        $video = Video::factory()->create(); // Creem un vídeo
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem destruir el vídeo
+        $response = $this->delete(route('videos.destroy', $video->id));
+
+        // Comprovem que l'usuari no pot destruir vídeos (Forbidden)
+        $response->assertStatus(403);
+    }
+
+    public function test_user_with_permissions_can_see_edit_videos()
+    {
+        self::createPermissions();
+        self::createSuperAdminRole();
+        $user = $this->loginAsSuperAdmin(); // Usuari amb permís de video_manager
+        $video = Video::factory()->create(); // Creem un vídeo
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem accedir a la pàgina d'edició
+        $response = $this->get(route('videos.edit', $video->id));
+
+        // Comprovem que la vista d'edició es carrega
+        $response->assertStatus(200);
+    }
+
+    public function test_user_without_permissions_cannot_see_edit_videos()
+    {
+        $user = User::factory()->create(); // Usuari sense permisos específics
+        $video = Video::factory()->create(); // Creem un vídeo
+
+        // Simulem el login de l'usuari
+        $this->actingAs($user);
+
+        // Intentem accedir a la pàgina d'edició
+        $response = $this->get(route('videos.edit', $video->id));
+
+        // Comprovem que l'usuari no pot veure la pàgina d'edició
+        $response->assertStatus(403); // Forbidden
+    }
+
+
 }

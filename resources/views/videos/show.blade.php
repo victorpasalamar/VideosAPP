@@ -29,5 +29,8 @@
         @endif
     @else
         <p>No hi ha cap vídeo disponible per mostrar.</p>
+
     @endif
+    <p></p>
+    <a href="{{ route('videos.index') }}" class="btn btn-secondary mt-3">Tornar a la llista de vídeos</a>
 @endsection

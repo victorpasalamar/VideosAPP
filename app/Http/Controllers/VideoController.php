@@ -15,7 +15,7 @@ class VideoController extends Controller
     public function index()
     {
         $videos = Video::all(); // Obtenim tots els vídeos
-        return view('videos.index', compact('videos')); // Retornem la vista amb els vídeos
+        return view('videos.manage.index', compact('videos')); // Retornem la vista amb els vídeos
     }
 
     /**
@@ -41,24 +41,20 @@ class VideoController extends Controller
             'tested_by' => \Tests\Unit\VideosTest::class,
         ]);
     }
-    public function edit($id)
+    public function edit(Video $video) // Laravel farà el model binding automàtic
     {
-        $video = Video::findOrFail($id); // Busca el vídeo pel seu ID
-
         if (!auth()->check()) {
             return redirect()->route('login');
         }
 
         $user = auth()->user();
 
-
         if (!$user->hasPermissionTo('edit videos')) {
             abort(403);
         }
-        return view('videos.edit', compact('video')); // Retorna la vista d'edició amb el vídeo
+
+        return view('videos.manage.edit', compact('video'));
     }
-
-
 
     public function update(Request $request, $id)
     {

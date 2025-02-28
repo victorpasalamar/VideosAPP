@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property mixed $user_id
+ * @method static findOrFail($id)
  */
 class Video extends Model
 {
